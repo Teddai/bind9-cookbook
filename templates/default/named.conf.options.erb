@@ -48,6 +48,7 @@ options {
     <% end %>
 };
 
+/* default to syslog
 logging {
   channel default_log {
     file "/var/log/bind/bind.log" versions 5 size 128M;
@@ -59,3 +60,4 @@ logging {
   category default { default_log; };
   category general { default_log; };
 };
+*/
