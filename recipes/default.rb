@@ -17,20 +17,7 @@
 # limitations under the License.
 #
 
-package "bind9" do
-  case node[:platform]
-  when "centos", "redhat", "suse", "fedora"
-    package_name "bind"
-  when "debian", "ubuntu"
-    package_name "bind9"
-  end
-  action :install
-end
-
-service "bind9" do
-  supports :status => true, :reload => true, :restart => true
-  action [ :enable, :start ]
-end
+include_recipe "bind9::install"
 
 template "/etc/bind/named.conf.options" do
   source "named.conf.options.erb"
@@ -49,21 +36,73 @@ template "/etc/bind/named.conf.local" do
 })
 end
 
-search(:zones).each do |zone|
-  template "/etc/bind/#{zone['domain']}" do
-    source "zonefile.erb"
-    owner "root"
-    group "root"
-    mode 0644
-    variables({
-      :domain => zone['domain'],
-      :soa => zone['zone_info']['soa'],
-      :contact => zone['zone_info']['contact'],
-      :serial => zone['zone_info']['serial'],
-      :global_ttl => zone['zone_info']['global_ttl'],
-      :nameserver => zone['zone_info']['nameserver'],
-      :mail_exchange => zone['zone_info']['mail_exchange'],
-      :records => zone['zone_info']['records']
-    })
+ruby_block "generate serial" do
+  block do
+    require "date"
+    node.set[:bind9][:serial] = Time.now.utc.strftime("%Y%m%H%M")
+    node.save
   end
+  action :create
+end
+
+search(:zones).each do |zone|
+  if ! zone['ddns']
+    template "/etc/bind/#{zone['domain']}" do
+      source "zonefile.erb"
+      owner "root"
+      group "root"
+      mode 0644
+      variables({
+        :domain => zone['domain'],
+        :soa => zone['zone_info']['soa'],
+        :contact => zone['zone_info']['contact'],
+        :serial => zone['zone_info']['serial'],
+        :global_ttl => zone['zone_info']['global_ttl'],
+        :nameserver => zone['zone_info']['nameserver'],
+        :mail_exchange => zone['zone_info']['mail_exchange'],
+        :records => zone['zone_info']['records']
+      })
+      end
+  else
+    freeze.run_action(:run)
+    template "/etc/bind/#{zone['domain']}" do
+      source "zonefile_ddns.erb"
+      owner "root"
+      group "root"
+      mode 0644
+      variables(
+        :file => "/etc/bind/#{zone['domain']}.header"
+        )
+      action :create_if_missing
+    end
+    template "/etc/bind/#{zone['domain']}.header" do
+      source "zonefile.erb"
+      owner "root"
+      group "root"
+      mode 0644
+      variables(
+        :domain => zone['domain'],
+        :soa => zone['zone_info']['soa'],
+        :contact => zone['zone_info']['contact'],
+          # update serial
+        :serial => node[:bind9][:serial],
+        :global_ttl => zone['zone_info']['global_ttl'],
+        :nameserver => zone['zone_info']['nameserver'],
+        :mail_exchange => zone['zone_info']['mail_exchange'],
+        :records => zone['zone_info']['records']
+      )
+      notifies :reload , "service[bind9]"
+    end
+    thaw.run_action(:run)
+  end  
+end
+
+freeze = execute "freeze update" do
+  command "rndc freeze"
+  action :nothing
+end
+
+thaw = execute "thaw updates" do
+  command "rndc thaw"
+  action :nothing
 end

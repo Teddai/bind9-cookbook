@@ -34,6 +34,15 @@ options {
 
     <% end %>
       auth-nxdomain no;    # conform to RFC1035
+    <% if node[:bind9][:listen_on] -%>
+       listen-on {
+       <% node[:bind9][:listen_on].each do |address| -%>
+         <%= address %>;
+       <% end %>
+       }
+    <% else -%>
+       listen-on { any; }
+    <% end %>
     <% if node[:bind9][:enable_ipv6] %>
       listen-on-v6 { any; };
     <% end %>

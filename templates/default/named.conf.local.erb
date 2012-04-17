@@ -6,15 +6,34 @@
 // organization
 //include "/etc/bind/zones.rfc1918";
 
-<% @zonefiles.each do |conf| -%>
-zone "<%= conf["domain"] %>" IN {
-  type <%= conf["type"] %>;
-  file "/etc/bind/<%= conf["domain"] %>";
+<% @zonefiles.each do |zone| -%>
+<% if zone["ddns"] and zone["secret"] -%>
+key ddns-<%= zone["domain"] %> {
+	algorithm hmac-md5;
+	secret "<%= zone["secret"] %>";
+}
+
+<% end %>
+zone "<%= zone["domain"] %>" IN {
+  type <%= zone["type"] %>;
+  file "/etc/bind/<%= zone["domain"] %>";
+  <% if zone["allow_transfer"] -%>
   allow-transfer {
-  <% conf["allow_transfer"].each do |ip| -%>
+  <% zone["allow_transfer"].each do |ip| -%>
     <%= ip %>;
   <% end %>
+  }
+  
+  <% end %>
+  <% if zone["allow_update"] %>
+  allow-update { 
+  <% zone["allow_update"].each do |update| -%>
+     <% if update == "key" and zone["secret"] -%>
+     key ddns-<%= zone["domain"] %>;
+     <% end %>
+   <% end %>
   };
+  <% end %>
 };
 
 <% end %>
