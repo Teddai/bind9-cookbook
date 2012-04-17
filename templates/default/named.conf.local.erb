@@ -11,7 +11,7 @@
 key ddns-<%= zone["domain"] %> {
 	algorithm hmac-md5;
 	secret "<%= zone["secret"] %>";
-}
+};
 
 <% end %>
 zone "<%= zone["domain"] %>" IN {
@@ -22,7 +22,7 @@ zone "<%= zone["domain"] %>" IN {
   <% zone["allow_transfer"].each do |ip| -%>
     <%= ip %>;
   <% end %>
-  }
+  };
   
   <% end %>
   <% if zone["allow_update"] %>
