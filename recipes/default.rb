@@ -19,6 +19,16 @@
 
 include_recipe "bind9::install"
 
+freeze = execute "freeze update" do
+  command "rndc freeze"
+  action :nothing
+end
+
+thaw = execute "thaw updates" do
+  command "rndc thaw"
+  action :nothing
+end
+
 template "/etc/bind/named.conf.options" do
   source "named.conf.options.erb"
   owner "root"
@@ -95,14 +105,4 @@ search(:zones).each do |zone|
     end
     thaw.run_action(:run)
   end  
-end
-
-freeze = execute "freeze update" do
-  command "rndc freeze"
-  action :nothing
-end
-
-thaw = execute "thaw updates" do
-  command "rndc thaw"
-  action :nothing
 end
