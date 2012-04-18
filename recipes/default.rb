@@ -21,11 +21,13 @@ include_recipe "bind9::install"
 
 freeze = execute "freeze update" do
   command "rndc freeze"
+  ignore_failure true
   action :nothing
 end
 
 thaw = execute "thaw updates" do
   command "rndc thaw"
+  ignore_failure true
   action :nothing
 end
 
