@@ -7,21 +7,21 @@ options {
 
     <% if node[:bind9][:allow_query] %>
       allow-query {
-        "<%= node[:bind9][:allow_query] %>";
+        <%= node[:bind9][:allow_query] %>;
       };
 
     <% end %>
       allow-recursion {
-        "<%= node[:bind9][:allow_recursion] %>";
+        <%= node[:bind9][:allow_recursion] %>;
       };
 
       allow-transfer {
-        "<%= node[:bind9][:allow_transfer] %>";
+        <%= node[:bind9][:allow_transfer] %>;
       };
 
     <% if node[:bind9][:allow_update] %>
       allow-update {
-        "<%= node[:bind9][:allow_update] %>";
+        <%= node[:bind9][:allow_update] %>;
       };
 
     <% end %>
@@ -61,3 +61,4 @@ logging {
   category general { default_log; };
 };
 */
+

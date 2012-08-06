@@ -16,7 +16,7 @@ key ddns-<%= zone["domain"] %> {
 <% end %>
 zone "<%= zone["domain"] %>" IN {
   type <%= zone["type"] %>;
-  file "/etc/bind/<%= zone["domain"] %>";
+  file "/var/cache/bind/<%= zone["domain"] %>";
   <% if zone["allow_transfer"] -%>
   allow-transfer {
   <% zone["allow_transfer"].each do |ip| -%>
@@ -37,3 +37,4 @@ zone "<%= zone["domain"] %>" IN {
 };
 
 <% end %>
+

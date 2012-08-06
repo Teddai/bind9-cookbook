@@ -21,11 +21,13 @@ include_recipe "bind9::install"
 
 freeze = execute "freeze update" do
   command "rndc freeze"
+  returns [ 0 , 1 ]
   action :nothing
 end
 
 thaw = execute "thaw updates" do
   command "rndc thaw"
+  returns [ 0 , 1 ]
   action :nothing
 end
 
@@ -57,10 +59,10 @@ end
 
 search(:zones).each do |zone|
   if ! zone['ddns']
-    template "/etc/bind/#{zone['domain']}" do
+    template "/var/cache/bind/#{zone['domain']}" do
       source "zonefile.erb"
-      owner "root"
-      group "root"
+      owner "bind"
+      group "bind"
       mode 0644
       variables({
         :domain => zone['domain'],
@@ -75,20 +77,20 @@ search(:zones).each do |zone|
       end
   else
     freeze.run_action(:run)
-    template "/etc/bind/#{zone['domain']}" do
+    template "/var/cache/bind/#{zone['domain']}" do
       source "zonefile_ddns.erb"
-      owner "root"
-      group "root"
+      owner "bind"
+      group "bind"
       mode 0644
       variables(
-        :file => "/etc/bind/#{zone['domain']}.header"
+        :file => "/var/cache/bind/#{zone['domain']}.header"
         )
       action :create_if_missing
     end
-    template "/etc/bind/#{zone['domain']}.header" do
+    template "/var/cache/bind/#{zone['domain']}.header" do
       source "zonefile.erb"
-      owner "root"
-      group "root"
+      owner "bind"
+      group "bind"
       mode 0644
       variables(
         :domain => zone['domain'],
@@ -101,7 +103,7 @@ search(:zones).each do |zone|
         :mail_exchange => zone['zone_info']['mail_exchange'],
         :records => zone['zone_info']['records']
       )
-      notifies :reload , "service[bind9]"
+#      notifies :reload , "service[bind9]"
     end
     thaw.run_action(:run)
   end  

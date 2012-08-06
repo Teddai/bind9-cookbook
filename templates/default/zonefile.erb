@@ -7,19 +7,19 @@ $TTL <%= @global_ttl %>
                 1D      ; minimum
 );
 
-                           IN    NS <%= @soa %>
+	IN	NS	<%= @soa %> 
 <% @nameserver.each do |ns| -%>
-                           IN    NS <%= ns %>
+	IN	NS	<%= ns %>
 <% end %>
 
 <% if @mail_exchange -%>
 <% @mail_exchange.each do |mx| -%>
-                           IN    MX <%= mx['priority'] %> <%= mx['host'] %>
+	IN	MX	<%= mx['priority'] %> <%= mx['host'] %>
 <% end %>
 <% end %>
 
-                           IN     A <%= node['ipaddress'] %>
-ns                         IN     A <%= node['ipaddress'] %>
+<%#                            IN     A <%= node['ipaddress'] %>
+<%# ns                         IN     A <%= node['ipaddress'] %>
 
 <% if @records -%>
 <% @records.each do |record| -%>
