@@ -21,10 +21,16 @@ zone "<%= zone["domain"] %>" IN {
   allow-transfer {
   <% zone["allow_transfer"].each do |ip| -%>
     <%= ip %>;
-  <% end %>
+  <% end -%>
   };
-  
-  <% end %>
+  <% end -%>
+  <% if zone["also_notify"] -%>
+  also-notify {
+  <% zone["also_notify"].sort.each do |ip| -%>
+    <%= ip %>;
+  <% end -%>
+  };
+  <% end -%>
   <% if zone["allow_update"] %>
   allow-update { 
   <% zone["allow_update"].each do |update| -%>
